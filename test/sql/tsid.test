@@ -15,6 +15,6 @@ require icu
 
 # Confirm the extension works
 query I
-SELECT * FROM tsid();
+SELECT regexp_full_match(tsid, '[0-9A-Z]{13}') from (SELECT * as tsid from tsid())
 ----
-[0-9A-Z]{11}
+1
