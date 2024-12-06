@@ -4,17 +4,17 @@
 
 # Before we load the extension, this will fail
 statement error
-SELECT rusty_quack('Sam');
+SELECT tsid();
 ----
-Catalog Error: Scalar Function with name rusty_quack does not exist!
+Catalog Error: Scalar Function with name tsid does not exist!
 
 # Require statement will ensure the extension is loaded from now on
-require rusty_quack
+require tsid
 
 require icu
 
 # Confirm the extension works
 query I
-SELECT * from rusty_quack('Sam');
+SELECT * FROM tsid();
 ----
-Rusty Quack Sam 🐥
+[0-9A-Z]{11}
