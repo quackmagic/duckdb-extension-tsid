@@ -206,21 +206,22 @@ public:
                       (static_cast<uint32_t>(data_[1]) << 16) |
                       (static_cast<uint32_t>(data_[2]) << 8) |
                        static_cast<uint32_t>(data_[3]);
-
+    
         uint16_t ns1 = (static_cast<uint16_t>(data_[4]) << 8) |
                        static_cast<uint16_t>(data_[5]);
         
         uint16_t ns2 = (static_cast<uint16_t>(data_[6]) << 8) |
                        static_cast<uint16_t>(data_[7]);
-
+    
         ns2 = ns2 & 0x0fff;
         ns2 = ns2 << 4;
         uint32_t nsec = (static_cast<uint32_t>(ns1) << 16) | ns2;
         nsec = nsec >> 2;
-
+    
         // Use from_time_t for seconds and add nanoseconds
         auto base = std::chrono::system_clock::from_time_t(sec);
-        return base + std::chrono::nanoseconds(nsec);
+        auto duration = std::chrono::duration_cast<std::chrono::system_clock::duration>(std::chrono::nanoseconds(nsec));
+        return base + duration;
     }
 
     const ByteArray& bytes() const { return data_; }
