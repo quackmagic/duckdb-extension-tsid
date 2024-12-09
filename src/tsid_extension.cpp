@@ -11,14 +11,28 @@
 
 namespace duckdb {
 
-// Generate new TSID
+// Generate new TSID (with input parameter - ignored)
 static void TsidScalarFun(DataChunk &args, ExpressionState &state, Vector &result) {
-    UnaryExecutor::Execute<string_t, string_t>(
-        args.data[0], result, args.size(),
-        [&](string_t input) {
-            auto id = UUTID::new_id();
-            return StringVector::AddString(result, id.to_string());
-        });
+    auto result_data = FlatVector::GetData<string_t>(result);
+    auto &validity = FlatVector::Validity(result);
+    
+    for (idx_t i = 0; i < args.size(); i++) {
+        auto id = UUTID::new_id();
+        result_data[i] = StringVector::AddString(result, id.to_string());
+        validity.Set(i, true);
+    }
+}
+
+// Generate new TSID (no input parameter)
+static void TsidScalarFunNoArgs(DataChunk &args, ExpressionState &state, Vector &result) {
+    auto result_data = FlatVector::GetData<string_t>(result);
+    auto &validity = FlatVector::Validity(result);
+    
+    for (idx_t i = 0; i < args.size(); i++) {
+        auto id = UUTID::new_id();
+        result_data[i] = StringVector::AddString(result, id.to_string());
+        validity.Set(i, true);
+    }
 }
 
 // Extract timestamp from TSID
@@ -39,12 +53,20 @@ static void TsidToTimestampScalarFun(DataChunk &args, ExpressionState &state, Ve
 }
 
 static void LoadInternal(DatabaseInstance &instance) {
-    // Register tsid() function
-    auto tsid_scalar_function = ScalarFunction(
-        "tsid", {LogicalType::VARCHAR}, LogicalType::VARCHAR, 
-        TsidScalarFun
-    );
-    ExtensionUtil::RegisterFunction(instance, tsid_scalar_function);
+    // Register tsid() functions
+    ScalarFunctionSet set("tsid");
+    
+    // Add variant with text parameter
+    ScalarFunction tsid_fun({LogicalType::VARCHAR}, LogicalType::VARCHAR, TsidScalarFun);
+    tsid_fun.stability = FunctionStability::VOLATILE;
+    set.AddFunction(tsid_fun);
+    
+    // Add variant without parameters
+    ScalarFunction tsid_fun_no_args({}, LogicalType::VARCHAR, TsidScalarFunNoArgs);
+    tsid_fun_no_args.stability = FunctionStability::VOLATILE;
+    set.AddFunction(tsid_fun_no_args);
+    
+    ExtensionUtil::RegisterFunction(instance, set);
 
     // Register tsid_to_timestamp() function
     auto tsid_to_timestamp_function = ScalarFunction(
