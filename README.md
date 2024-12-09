@@ -15,8 +15,8 @@ LOAD tsid;
 
 Generate a new TSID:
 ```sql
--- Generate a new time-sortable ID (requires any input string)
-SELECT tsid('any');
+-- Generate a new time-sortable ID (accepts an optional seed string)
+SELECT tsid();
 ```
 
 ### Working with Timestamps
