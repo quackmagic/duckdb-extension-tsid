@@ -218,9 +218,9 @@ public:
         uint32_t nsec = (static_cast<uint32_t>(ns1) << 16) | ns2;
         nsec = nsec >> 2;
 
-        return std::chrono::system_clock::time_point(
-            std::chrono::seconds(sec) + std::chrono::nanoseconds(nsec)
-        );
+        // Use from_time_t for seconds and add nanoseconds
+        auto base = std::chrono::system_clock::from_time_t(sec);
+        return base + std::chrono::nanoseconds(nsec);
     }
 
     const ByteArray& bytes() const { return data_; }
